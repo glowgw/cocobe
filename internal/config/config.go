@@ -1,15 +1,15 @@
 package config
 
 type Config struct {
-	RpcUrl   string
-	GrpcUrl  string
-	Insecure bool
+	RpcUrl      string
+	Connections int
+	Clients     int
 }
 
-func Default() Config {
-	return Config{
-		RpcUrl: "http://localhost:26657",
-		// GrpcUrl:  "localhost:9090",
-		Insecure: true,
+func Default() *Config {
+	return &Config{
+		RpcUrl:      "http://localhost:26657",
+		Connections: 10,
+		Clients:     2,
 	}
 }

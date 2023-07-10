@@ -5,7 +5,7 @@ import (
 )
 
 func TestBet(t *testing.T) {
-	c, err := newPerfClient(nil)
+	c, err := newPerfClient()
 	if err != nil {
 		t.Fatal(err)
 	}
