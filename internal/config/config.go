@@ -6,10 +6,10 @@ type Config struct {
 	Insecure bool
 }
 
-func DefaultConfig() Config {
+func Default() Config {
 	return Config{
-		RpcUrl:   "http://localhost:26657",
-		GrpcUrl:  "localhost:9090",
+		RpcUrl: "http://localhost:26657",
+		// GrpcUrl:  "localhost:9090",
 		Insecure: true,
 	}
 }

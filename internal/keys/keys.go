@@ -12,7 +12,6 @@ func init() {
 	sdkconfig := sdk.GetConfig()
 	utils.SetPrefixes(sdkconfig, app.AccountAddressPrefix)
 	utils.SetBip44CoinType(sdkconfig)
-	sdkconfig.Seal()
 }
 
 func KeyPubAddrFromSecret(secret []byte) (cryptotypes.PrivKey, cryptotypes.PubKey, sdk.AccAddress) {
