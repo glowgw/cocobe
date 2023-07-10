@@ -198,7 +198,7 @@ require (
 replace (
 	github.com/chehsunliu/poker => github.com/coconut2626/poker v0.1.0
 	github.com/cosmos/ibc-go/v6 => github.com/dymensionxyz/ibc-go/v6 v6.0.0-rc0.0.20230619115257-1a1038e16d71
-	github.com/dymensionxyz/rollapp => /Users/haitien/Desktop/glow/dymension-rdk
+	github.com/dymensionxyz/rollapp => github.com/coconut2626/dymension-rdk v0.5.0-rc1
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/cometbft/cometbft v0.34.28
 )
