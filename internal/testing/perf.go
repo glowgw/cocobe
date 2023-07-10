@@ -141,7 +141,7 @@ func (pc *perfClient) sendTx() error {
 		return err
 	}
 
-	pc.logger.Info("res", res.String())
+	pc.logger.Info("broadcast tx: ", "code", res.Code, "tx_hash", res.TxHash)
 
 	return nil
 }
