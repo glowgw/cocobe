@@ -3,6 +3,7 @@ package testing
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 var listUsers []string
@@ -18,25 +19,27 @@ func TestBet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var seq uint64
-	iter := 0
-	firstSeq, err := c.GetAccountNumberSequence(listUsers[0])
+
+	seq, err := c.GetAccountNumberSequence(listUsers[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	seq = firstSeq
-	t.Logf("seq = %d", firstSeq)
-	for {
-		if iter > 1_000_000 {
-			break
-		}
-		accSeq, err := c.sendTx(listUsers[0], seq)
+
+	for i := 0; i < 1000; i++ {
+		res, err := c.sendTx(listUsers[0], seq)
 		if err != nil {
 			t.Fatal(err)
 		}
-		seq = accSeq
-
-		iter += 1
+		if res.Code == 0 {
+			t.Logf("txhash=%s", res.TxHash)
+			seq += 1
+		} else {
+			time.Sleep(20 * time.Millisecond)
+			seq, err = c.GetAccountNumberSequence(listUsers[0])
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
 	}
 
 }

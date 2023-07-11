@@ -109,10 +109,10 @@ func (pc *perfClient) GetAddress(name string) (sdk.AccAddress, error) {
 	return addr, nil
 }
 
-func (pc *perfClient) sendTx(user string, accSeq uint64) (uint64, error) {
+func (pc *perfClient) sendTx(user string, seq uint64) (*sdk.TxResponse, error) {
 	addr, err := pc.GetAddress(user)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	pc.baseCtx = pc.baseCtx.WithFromAddress(addr)
 
@@ -121,15 +121,15 @@ func (pc *perfClient) sendTx(user string, accSeq uint64) (uint64, error) {
 	accNum, _, err := pc.txf.AccountRetriever().GetAccountNumberSequence(pc.baseCtx, fromAddr)
 	if err != nil {
 		pc.logger.Error("account retriever failed", "err", err)
-		return 0, err
+		return nil, err
 	}
-	pc.txf = pc.txf.WithAccountNumber(accNum).WithSequence(accSeq)
+	pc.txf = pc.txf.WithAccountNumber(accNum).WithSequence(seq)
 
 	argOption := "over"
 	numberBetting := uint32(40)
 	coin, err := sdk.ParseCoinNormalized("200urax")
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	msg := types.NewMsgDiceBetting(
@@ -140,36 +140,30 @@ func (pc *perfClient) sendTx(user string, accSeq uint64) (uint64, error) {
 	)
 	if err := msg.ValidateBasic(); err != nil {
 		pc.logger.Error("validate basic failed", "err", err)
-		return 0, err
+		return nil, err
 	}
 
 	pc.baseCtx.BroadcastMode = flags.BroadcastSync
 
 	txUnsign, err := pc.txf.BuildUnsignedTx(msg)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 	err = tx.Sign(pc.txf, user, txUnsign, true)
 	if err != nil {
 		pc.logger.Error("err sign: ", "err", err)
-		return 0, err
+		return nil, err
 	}
 
 	txBytes, err := pc.baseCtx.TxConfig.TxEncoder()(txUnsign.GetTx())
 	if err != nil {
 		pc.logger.Error("encode tx error: ", "err", err)
-		return 0, err
+		return nil, err
 	}
 
 	res, err := pc.baseCtx.BroadcastTx(txBytes)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
-
-	pc.logger.Info("broadcast tx: ", "code", res.Code, "tx_hash", res.TxHash)
-	if res.Code == 0 {
-		return accSeq + 1, nil
-	}
-
-	return accSeq, nil
+	return res, err
 }
