@@ -18,18 +18,18 @@ func TestBet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	var seq uint64
 	iter := 0
+	firstSeq, err := c.GetAccountNumberSequence(listUsers[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	seq = firstSeq
+	t.Logf("seq = %d", firstSeq)
 	for {
 		if iter > 1_000_000 {
 			break
 		}
-
-		var seq uint64
-		firstSeq, err := c.GetAccountNumberSequence(listUsers[0])
-		if err != nil {
-			t.Fatal(err)
-		}
-		seq = firstSeq
 		accSeq, err := c.sendTx(listUsers[0], seq)
 		if err != nil {
 			t.Fatal(err)
