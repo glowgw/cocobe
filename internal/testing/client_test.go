@@ -14,6 +14,19 @@ func init() {
 	}
 }
 
+func TestPerfsSingle(t *testing.T) {
+	ps := newPerfs(1000)
+	_, err := ps.runSingleUser(listUsers[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPerfsAll(t *testing.T) {
+	ps := newPerfs(1000)
+	ps.run()
+}
+
 func TestBet(t *testing.T) {
 	c, err := newPerfClient()
 	if err != nil {
@@ -31,7 +44,6 @@ func TestBet(t *testing.T) {
 			t.Fatal(err)
 		}
 		if res.Code == 0 {
-			t.Logf("txhash=%s", res.TxHash)
 			seq += 1
 		} else {
 			time.Sleep(20 * time.Millisecond)
