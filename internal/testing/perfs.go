@@ -16,7 +16,7 @@ type perfs struct {
 	logger *slog.Logger
 }
 
-func newPerfs(batchSize uint64) *perfs {
+func NewPerfs(batchSize uint64) *perfs {
 	listUsers := makeListUsers()
 	clients := map[string]*perfClient{}
 	for _, name := range listUsers {
@@ -36,7 +36,7 @@ func newPerfs(batchSize uint64) *perfs {
 
 func makeListUsers() []string {
 	var listUsers []string
-	for i := 1; i < 8; i++ {
+	for i := 1; i < 14; i++ {
 		listUsers = append(listUsers, fmt.Sprintf("rol-user%d", i))
 	}
 	return listUsers
@@ -74,7 +74,7 @@ func (p *perfs) runSingleUser(name string) (uint64, error) {
 	return total, nil
 }
 
-func (p *perfs) run() {
+func (p *perfs) Run() {
 	startTime := time.Now()
 
 	var wg sync.WaitGroup

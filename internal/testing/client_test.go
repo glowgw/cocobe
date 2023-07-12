@@ -15,7 +15,7 @@ func init() {
 }
 
 func TestPerfsSingle(t *testing.T) {
-	ps := newPerfs(1000)
+	ps := NewPerfs(1000)
 	_, err := ps.runSingleUser(listUsers[0])
 	if err != nil {
 		t.Fatal(err)
@@ -23,8 +23,8 @@ func TestPerfsSingle(t *testing.T) {
 }
 
 func TestPerfsAll(t *testing.T) {
-	ps := newPerfs(1000)
-	ps.run()
+	ps := NewPerfs(1000)
+	ps.Run()
 }
 
 func TestBet(t *testing.T) {
