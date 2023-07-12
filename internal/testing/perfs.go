@@ -16,15 +16,14 @@ type perfs struct {
 	logger *slog.Logger
 }
 
-func NewPerfs(batchSize uint64) *perfs {
-	listUsers := makeListUsers()
+func NewPerfs(batchSize uint64, listUsers []string) *perfs {
 	clients := map[string]*perfClient{}
-	for _, name := range listUsers {
-		c, err := newPerfClient()
+	for _, user := range listUsers {
+		c, err := newPerfClient(user)
 		if err != nil {
 			panic(err)
 		}
-		clients[name] = c
+		clients[user] = c
 	}
 	return &perfs{
 		batchSize: batchSize,
@@ -34,9 +33,9 @@ func NewPerfs(batchSize uint64) *perfs {
 	}
 }
 
-func makeListUsers() []string {
+func MakeListUsers(from, to int) []string {
 	var listUsers []string
-	for i := 1; i < 14; i++ {
+	for i := from; i <= to; i++ {
 		listUsers = append(listUsers, fmt.Sprintf("rol-user%d", i))
 	}
 	return listUsers
@@ -44,7 +43,7 @@ func makeListUsers() []string {
 
 func (p *perfs) runSingleUser(name string) (uint64, error) {
 	c := p.clients[name]
-	seq, err := c.GetAccountNumberSequence(name)
+	_, seq, err := c.GetAccountNumberSequence()
 	if err != nil {
 		p.logger.Error("", "err", err)
 		return 0, err
@@ -62,8 +61,8 @@ func (p *perfs) runSingleUser(name string) (uint64, error) {
 			seq++
 			total++
 		} else {
-			time.Sleep(20 * time.Millisecond)
-			seq, err = c.GetAccountNumberSequence(name)
+			time.Sleep(10 * time.Millisecond)
+			_, seq, err = c.GetAccountNumberSequence()
 			if err != nil {
 				p.logger.Error("", "err", err)
 				return 0, err

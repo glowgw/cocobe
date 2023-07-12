@@ -29,6 +29,9 @@ type perfClient struct {
 	ec params.EncodingConfig
 	kr keyring.Keyring
 
+	user   string // from name
+	accNum uint64
+
 	baseCtx client.Context
 	txf     tx.Factory
 }
@@ -42,7 +45,7 @@ var (
 	gasAdj = 1.15
 )
 
-func newPerfClient() (*perfClient, error) {
+func newPerfClient(user string) (*perfClient, error) {
 	logger := slog.Default()
 	cfg := config.Default()
 
@@ -54,6 +57,7 @@ func newPerfClient() (*perfClient, error) {
 	ec := app.MakeEncodingConfig()
 
 	baseCtx := client.Context{}.
+		WithFromName(user).
 		WithChainID(chainID).
 		WithTxConfig(ec.TxConfig).
 		WithCodec(ec.Codec).
@@ -76,27 +80,41 @@ func newPerfClient() (*perfClient, error) {
 		WithGasAdjustment(gasAdj).
 		WithAccountRetriever(authtypes.AccountRetriever{})
 
-	return &perfClient{
+	pc := &perfClient{
 		ec:      ec,
 		logger:  logger,
 		baseCtx: baseCtx,
 		txf:     txf,
 		cfg:     cfg,
 		kr:      kr,
-	}, nil
-}
-
-func (pc *perfClient) GetAccountNumberSequence(name string) (uint64, error) {
-	addr, err := pc.GetAddress(name)
-	if err != nil {
-		return 0, err
+		user:    user,
 	}
-	_, accSeq, err := pc.txf.AccountRetriever().GetAccountNumberSequence(pc.baseCtx, addr)
-	return accSeq, err
+
+	addr, err := pc.GetAddress()
+	if err != nil {
+		return nil, err
+	}
+	pc.baseCtx = pc.baseCtx.WithFromAddress(addr)
+
+	accNum, seq, err := pc.GetAccountNumberSequence()
+	if err != nil {
+		return nil, err
+	}
+	pc.txf = pc.txf.WithAccountNumber(accNum).WithSequence(seq)
+
+	return pc, nil
 }
 
-func (pc *perfClient) GetAddress(name string) (sdk.AccAddress, error) {
-	pc.baseCtx = pc.baseCtx.WithFromName(name)
+func (pc *perfClient) GetAccountNumberSequence() (uint64, uint64, error) {
+	addr, err := pc.GetAddress()
+	if err != nil {
+		return 0, 0, err
+	}
+	accNum, accSeq, err := pc.txf.AccountRetriever().GetAccountNumberSequence(pc.baseCtx, addr)
+	return accNum, accSeq, err
+}
+
+func (pc *perfClient) GetAddress() (sdk.AccAddress, error) {
 	record, err := pc.kr.Key(pc.baseCtx.GetFromName())
 	if err != nil {
 		pc.logger.Error("err get key by from name", "err", err)
@@ -110,20 +128,8 @@ func (pc *perfClient) GetAddress(name string) (sdk.AccAddress, error) {
 }
 
 func (pc *perfClient) sendTx(user string, seq uint64) (*sdk.TxResponse, error) {
-	addr, err := pc.GetAddress(user)
-	if err != nil {
-		return nil, err
-	}
-	pc.baseCtx = pc.baseCtx.WithFromAddress(addr)
-
-	fromAddr := pc.baseCtx.GetFromAddress()
-
-	accNum, _, err := pc.txf.AccountRetriever().GetAccountNumberSequence(pc.baseCtx, fromAddr)
-	if err != nil {
-		pc.logger.Error("account retriever failed", "err", err)
-		return nil, err
-	}
-	pc.txf = pc.txf.WithAccountNumber(accNum).WithSequence(seq)
+	// Update account sequence each time send tx
+	pc.txf = pc.txf.WithSequence(seq)
 
 	argOption := "over"
 	numberBetting := uint32(40)

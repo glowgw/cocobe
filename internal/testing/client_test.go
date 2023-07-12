@@ -9,13 +9,13 @@ import (
 var listUsers []string
 
 func init() {
-	for i := 1; i < 8; i++ {
+	for i := 1; i < 14; i++ {
 		listUsers = append(listUsers, fmt.Sprintf("rol-user%d", i))
 	}
 }
 
 func TestPerfsSingle(t *testing.T) {
-	ps := NewPerfs(1000)
+	ps := NewPerfs(1000, nil)
 	_, err := ps.runSingleUser(listUsers[0])
 	if err != nil {
 		t.Fatal(err)
@@ -23,23 +23,24 @@ func TestPerfsSingle(t *testing.T) {
 }
 
 func TestPerfsAll(t *testing.T) {
-	ps := NewPerfs(1000)
+	ps := NewPerfs(1000, nil)
 	ps.Run()
 }
 
 func TestBet(t *testing.T) {
-	c, err := newPerfClient()
+	testUser := listUsers[3]
+	c, err := newPerfClient(testUser)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	seq, err := c.GetAccountNumberSequence(listUsers[0])
+	_, seq, err := c.GetAccountNumberSequence()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	for i := 0; i < 1000; i++ {
-		res, err := c.sendTx(listUsers[0], seq)
+		res, err := c.sendTx(testUser, seq)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -47,7 +48,7 @@ func TestBet(t *testing.T) {
 			seq += 1
 		} else {
 			time.Sleep(20 * time.Millisecond)
-			seq, err = c.GetAccountNumberSequence(listUsers[0])
+			_, seq, err = c.GetAccountNumberSequence()
 			if err != nil {
 				t.Fatal(err)
 			}

@@ -8,7 +8,8 @@ type Config struct {
 
 func Default() *Config {
 	return &Config{
-		RpcUrl:   "http://localhost:26657",
+		RpcUrl: "http://10.15.7.100:26657",
+		// RpcUrl:   "http://localhost:26657",
 		GrpcUrl:  "localhost:9090",
 		Insecure: true,
 	}
